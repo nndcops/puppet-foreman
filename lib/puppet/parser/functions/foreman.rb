@@ -60,12 +60,16 @@ module Puppet::Parser::Functions
     timeout       = (args_hash['timeout']      || 5).to_i
 
     # extend this as required
-    searchable_items = %w{ environments fact_values hosts hostgroups puppetclasses smart_proxies subnets }
+    searchable_items = %w{ environments fact_values hosts hostgroups puppetclasses smart_proxies subnets host}
     raise Puppet::ParseError, "Foreman: Invalid item to search on: #{item}, must be one of #{searchable_items.join(", ")}." unless searchable_items.include?(item)
     raise Puppet::ParseError, "Foreman: Invalid filter_result: #{filter_result}, must be a String or an Array" unless filter_result.is_a? String or filter_result.is_a? Array or filter_result.is_a? Hash or filter_result == false
 
     begin
-      path = URI.escape("/api/#{item}?search=#{search}&per_page=#{per_page}")
+      if item == "host"
+        path = URI.escape("/api/v2/hosts/#{search}")
+      else
+        path = URI.escape("/api/v2/#{item}?search=#{search}&per_page=#{per_page}")
+      end
 
       req = Net::HTTP::Get.new(path)
       req['Content-Type'] = 'application/json'
@@ -140,3 +144,4 @@ module Puppet::Parser::Functions
     return results
   end
 end
+
